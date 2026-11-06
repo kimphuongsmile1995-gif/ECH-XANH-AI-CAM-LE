@@ -134,7 +134,9 @@ body:not(.ph) .chi-ph{display:none!important}
 .ro-duoi{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:6px 14px;font-size:14px;color:var(--chu);background:#fff8}
 .ro-cam{position:fixed;left:0;top:0;width:2px;height:2px;opacity:0;pointer-events:none}
 /* THI TÀI «BÉ BỎ RÁC VÀO THÙNG» — hiện mặt bé và khớp tay */
-#phong{z-index:40} /* khung sửa, thêm loại rác hiện TRÊN màn trò chơi */
+#phong{z-index:40}
+.tc-khop{position:absolute;inset:0;width:100%;height:100%;z-index:5;pointer-events:none}
+@media (max-width:760px){#tc-choi .ph-hd{display:none}#tc-choi .ro-tren{gap:6px;padding:6px 8px}#tc-choi .ro-de{font-size:17px;min-width:0;flex-basis:100%;padding:6px 10px}#tc-choi .ro-de .anh-de{width:46px;height:46px}#tc-choi .ro-tren .nut{padding:6px 10px;font-size:14px}#tc-choi .tc-diem{font-size:20px;padding:4px 10px}#tc-choi .ro-duoi{font-size:11px;flex-direction:column;align-items:flex-start;gap:2px;padding:4px 8px}} /* khung sửa, thêm loại rác hiện TRÊN màn trò chơi */
 .tc-nen{position:absolute;inset:0;width:100%;height:100%;z-index:0}
 #tc-san .ro-vat{z-index:2}#tc-san .ro-vat.giu{z-index:4}
 .tc-thung{width:var(--gio);height:calc(var(--gio)*1.25);bottom:1%;z-index:1;background:none}
@@ -338,6 +340,7 @@ body:not(.ph) .chi-ph{display:none!important}
   <div class="ph-hd chi-ph" style="margin:0 14px">👨‍👩‍👧 <b>Ba mẹ ơi:</b> thùng <b>xanh</b> – rác hữu cơ (vỏ chuối, lá khô, vỏ trứng) · thùng <b>vàng</b> – rác tái chế (chai nhựa, lon, giấy, hộp sữa) · thùng <b>đỏ</b> – rác vô cơ (túi ni lông, ống hút, bát vỡ). Con đứng xa màn hình 1,5 m, <b>nắm tay</b> vào món rác để cầm, đưa tới thùng rồi <b>mở tay</b> ra. Chơi 3–5 phút rồi cùng con bỏ rác thật đúng thùng nhé.</div>
   <div class="ro-san" id="tc-san">
     <canvas id="tc-nen" class="tc-nen"></canvas>
+    <canvas id="tc-khop" class="tc-khop"></canvas>
     <div class="ro-gio tc-thung" id="tc-huuco" data-thung="huuco" style="left:17%"></div>
     <div class="ro-gio tc-thung" id="tc-taiche" data-thung="taiche" style="left:50%"></div>
     <div class="ro-gio tc-thung" id="tc-voco" data-thung="voco" style="left:83%"></div>
@@ -942,6 +945,7 @@ async function moThiTai(){
       :(MP_SAN?"Máy chưa mở được bộ nhận ra bàn tay (cô dùng Chrome hoặc Edge bản mới). Cô vẫn chơi được bằng chuột / chạm màn hình.":"Chưa tải được bộ nhận ra bàn tay (cần mạng lần đầu). Cô vẫn chơi được bằng chuột / chạm màn hình."));
   }
 }
+function tcSangCpu(){tc.cpu=1;mpNap().then(({mp,fs,goc})=>mp.HandLandmarker.createFromOptions(fs,{baseOptions:Object.assign({},goc,{delegate:"CPU"}),runningMode:"VIDEO",numHands:2,minHandDetectionConfidence:0.4,minHandPresenceConfidence:0.4,minTrackingConfidence:0.4})).then(l=>{ro.lm=l;tc.loi=0;}).catch(()=>{});}
 function tcTatCam(){try{if(tc.cam)tc.cam.getTracks().forEach(t=>t.stop());}catch(e){}tc.cam=null;try{$("tc-cam").srcObject=null;}catch(e){}const c=$("tc-nen");c.getContext("2d").clearRect(0,0,c.width,c.height);}
 function tatThiTai(){tc.dang=false;tcTatCam();if(tc.raf)clearInterval(tc.raf);tc.raf=0;tc.giu=null;tc.nhin=null;$("tc-choi").classList.add("an");$("tc-tay").style.display="none";}
 window.tatThiTaiNeu=()=>{if(tc.dang)tatThiTai();};
@@ -963,7 +967,7 @@ async function tcTen(t){const u=t.am?await urlTep(t.am):null;if(u)return roPhatU
 async function tcYeuCau(){const t=tc.dich;if(!t)return;await roNoi("Bé bỏ");await tcTen(t);await roNoi(THUNG[t.thung].noi);}
 function tcXep(){
   const san=$("tc-san");const W=san.clientWidth,H=san.clientHeight;if(W===tc.W&&H===tc.H)return;tc.W=W;tc.H=H;if(!W||!H)return;
-  const cv=$("tc-nen");cv.width=W;cv.height=H;
+  const cv=$("tc-nen");cv.width=W;cv.height=H;const ck=$("tc-khop");ck.width=W;ck.height=H;
   const n=tc.vat.length;const co=Math.round(Math.min(W/(n+1.2),H*0.26,200));
   san.style.setProperty("--co",co+"px");san.style.setProperty("--gio",Math.round(Math.min(W*0.24,H*0.46,280))+"px");
   tc.vat.forEach((v,i)=>{v.x=Math.round((W/n)*(i+0.5)-co/2);v.y=Math.round(H*0.04+(i%2)*H*0.07);if(!v.xong&&v!==tc.giu){v.e.style.left=v.x+"px";v.e.style.top=v.y+"px";}});
@@ -983,19 +987,23 @@ function tcVong(now){
   if(!tc.dang)return;
   tcXep();
   const v=$("tc-cam"),cv=$("tc-nen"),g=cv.getContext("2d"),W=cv.width,H=cv.height;
+  const gk=$("tc-khop").getContext("2d");gk.clearRect(0,0,W,H); /* khớp tay vẽ ở lớp trên cùng */
   let tay=null;
   if(tc.cam&&v.readyState>=2&&v.videoWidth){
     const c=tcCat(v.videoWidth,v.videoHeight,W,H);
     g.save();g.translate(W,0);g.scale(-1,1);g.drawImage(v,c.x0*v.videoWidth,c.y0*v.videoHeight,c.cw*v.videoWidth,c.ch*v.videoHeight,0,0,W,H);g.restore();
     g.fillStyle="rgba(255,255,255,.18)";g.fillRect(0,0,W,H);
-    let kq=null;if(ro.lm){try{kq=ro.lm.detectForVideo(v,now);}catch(e){}}
-    if(kq&&kq.landmarks&&kq.landmarks.length){
+    let kq=null;if(ro.lm){try{kq=ro.lm.detectForVideo(v,now);tc.loi=0;}catch(e){tc.loi=(tc.loi||0)+1;if(tc.loi===10&&!tc.cpu)tcSangCpu();}}
+    const coTay=!!(kq&&kq.landmarks&&kq.landmarks.length);
+    if(ro.lm&&coTay!==tc.thay&&(coTay||now-(tc.lucThay||0)>2500)){tc.thay=coTay;tcTT(coTay?"✅ Thấy tay bé rồi! Nắm tay vào món rác để cầm, mở tay ở đúng thùng để thả.":"✋ Chưa thấy tay bé — bé giơ tay cao trước camera, đứng xa hơn một chút, bật thêm đèn.");}
+    if(coTay)tc.lucThay=now;
+    if(coTay){
       const cacTay=kq.landmarks.map(l=>{const p=l.map(q=>tcDoi(q,c,W,H));const tam=[0,5,9,13,17].reduce((s,i)=>({x:s.x+p[i].x/5,y:s.y+p[i].y/5}),{x:0,y:0});return {l,p,tam};});
       if(tc.tay&&cacTay.length>1)cacTay.sort((a,b)=>Math.hypot(a.tam.x-tc.tay.x,a.tam.y-tc.tay.y)-Math.hypot(b.tam.x-tc.tay.x,b.tam.y-tc.tay.y));
       cacTay.forEach((h,i)=>{const nam=i===0?tcNam(h.l):false;
-        g.lineWidth=Math.max(4,W/220);g.strokeStyle=i===0?(nam?"#2f9e44":"#ffd43b"):"rgba(255,255,255,.7)";g.lineCap="round";
-        NOI_TAY.forEach(([a,b])=>{g.beginPath();g.moveTo(h.p[a].x,h.p[a].y);g.lineTo(h.p[b].x,h.p[b].y);g.stroke();});
-        h.p.forEach((q,j)=>{g.beginPath();g.arc(q.x,q.y,j%4===0&&j?Math.max(6,W/180):Math.max(4,W/260),0,7);g.fillStyle=i===0?"#fff":"rgba(255,255,255,.7)";g.fill();g.lineWidth=2;g.strokeStyle=i===0?"#e8590c":"#adb5bd";g.stroke();});});
+        gk.lineWidth=Math.max(4,W/220);gk.strokeStyle=i===0?(nam?"#2f9e44":"#ffd43b"):"rgba(255,255,255,.7)";gk.lineCap="round";
+        NOI_TAY.forEach(([a,b])=>{gk.beginPath();gk.moveTo(h.p[a].x,h.p[a].y);gk.lineTo(h.p[b].x,h.p[b].y);gk.stroke();});
+        h.p.forEach((q,j)=>{gk.beginPath();gk.arc(q.x,q.y,j%4===0&&j?Math.max(6,W/180):Math.max(4,W/260),0,7);gk.fillStyle=i===0?"#fff":"rgba(255,255,255,.7)";gk.fill();gk.lineWidth=2;gk.strokeStyle=i===0?"#e8590c":"#adb5bd";gk.stroke();});});
       tay=cacTay[0];
     }
   }else g.clearRect(0,0,W,H);
@@ -1401,10 +1409,10 @@ async function dongGoi(){
 $("nut-sao-kho").onclick=async()=>{$("tt-kho").textContent="Đang đóng gói…";const g=await dongGoi();taiVe("ech-xanh-kho-hoc-lieu.json",JSON.stringify({kho:g.kho,media:g.media}),"application/json");$("tt-kho").textContent="Đã sao lưu kho ("+Math.round(g.dung/1048576*10)/10+" MB).";};
 $("nhap-kho").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=async()=>{try{const d=JSON.parse(r.result);if(!d.kho||!d.kho.chuDe)throw 0;
   for(const [id,u] of Object.entries(d.media||{})){await luuTep(id,await layBlob(u));}kho=d.kho;luuKho();$("tt-kho").textContent="Đã nhập kho.";veKho();}catch(x){$("tt-kho").textContent="File kho không đọc được.";}};r.readAsText(f);};
-const LINK_TAI_LEN="https://github.com/kimphuongsmile1995-gif/ech-xanh-cam-le/upload/main";
+const LINK_TAI_LEN="https://github.com/kimphuongsmile1995-gif/ECH-XANH-AI-CAM-LE/upload/main";
 /* ===== ĐỒNG BỘ TỰ ĐỘNG QUA GITHUB của cô: chỉ gửi bài học, ảnh, giọng, video — KHÔNG gửi Tổng hợp, không dữ liệu trẻ ===== */
 const GH_KHOA="ech-xanh-camle-github";
-function ghCai(){const md={owner:"kimphuongsmile1995-gif",repo:"ech-xanh-cam-le",nhanh:"main",ma:""};try{return Object.assign(md,JSON.parse(localStorage.getItem(GH_KHOA)||"{}"));}catch(e){return md;}}
+function ghCai(){const md={owner:"kimphuongsmile1995-gif",repo:"ECH-XANH-AI-CAM-LE",nhanh:"main",ma:""};try{return Object.assign(md,JSON.parse(localStorage.getItem(GH_KHOA)||"{}"));}catch(e){return md;}}
 function ghLuu(c){try{localStorage.setItem(GH_KHOA,JSON.stringify(c));}catch(e){}}
 function ghLink(){const c=ghCai();return "https://"+c.owner+".github.io/"+c.repo+"/";}
 function ghDauDe(c,them){return Object.assign({"Authorization":"Bearer "+c.ma,"Accept":"application/vnd.github+json"},them||{});}
@@ -1436,7 +1444,7 @@ async function capNhatPH(){
   const html=await taoBanPH();const mb=Math.round(html.length/1048576*10)/10;
   if(!c.ma){ // chưa cài đồng bộ: tải file về như cũ
     taiVe("index.html",html,"text/html");
-    moPhong('<div class="sua"><h3>⚠️ Bài CHƯA tới phụ huynh</h3><p>Máy này chưa cài đồng bộ, nên bài <b>chưa lên web</b> — phụ huynh quét mã QR sẽ chưa thấy bài mới.</p><p>Máy chỉ tải file <b>index.html</b> ('+mb+' MB) vào <b>Tải về</b>. Cô làm một trong hai cách:<br>① Bấm <b>⚙️ Cài đồng bộ tự động</b> (một lần) rồi bấm lại «☁️ Cập nhật».<br>② Vào GitHub › kho ech-xanh-cam-le › Add file › Upload files, kéo file đó lên (tên file phải đúng <b>index.html</b>) › Commit changes.</p></div><div class="hang" style="justify-content:center"><button class="nut chinh" id="cn-cai">⚙️ Cài đồng bộ tự động</button><button class="nut phu" id="cn-dong">Để sau</button></div>');
+    moPhong('<div class="sua"><h3>⚠️ Bài CHƯA tới phụ huynh</h3><p>Máy này chưa cài đồng bộ, nên bài <b>chưa lên web</b> — phụ huynh quét mã QR sẽ chưa thấy bài mới.</p><p>Máy chỉ tải file <b>index.html</b> ('+mb+' MB) vào <b>Tải về</b>. Cô làm một trong hai cách:<br>① Bấm <b>⚙️ Cài đồng bộ tự động</b> (một lần) rồi bấm lại «☁️ Cập nhật».<br>② Vào GitHub › kho ECH-XANH-AI-CAM-LE › Add file › Upload files, kéo file đó lên (tên file phải đúng <b>index.html</b>) › Commit changes.</p></div><div class="hang" style="justify-content:center"><button class="nut chinh" id="cn-cai">⚙️ Cài đồng bộ tự động</button><button class="nut phu" id="cn-dong">Để sau</button></div>');
     $("cn-cai").onclick=moCaiGH;$("cn-dong").onclick=dongPhong;return;}
   moPhong('<h3>☁️ Đang gửi lên web của cô…</h3><div class="chu-nho">'+mb+' MB — cô chờ một chút, đừng tắt máy.</div>');
   try{
